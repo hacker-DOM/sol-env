@@ -2,11 +2,12 @@
 
 from sol_env import process_line
 
-preimages_and_images = [
+envs_preimages_and_images = [
     # any lines without the metadata are fixed-points
     ('dev', 'foo', 'foo'),
     # empty lines are also invariant
     ('dev', '    // sol-env:dev', '    // sol-env:dev'),
+    ('dev', '', ''),
     ('dev', '    ', '    '),
     # An activated line remains activated
     (
@@ -35,7 +36,7 @@ preimages_and_images = [
 ]
 
 def main():
-    for idx, (env, preimg, img) in enumerate(preimages_and_images):
+    for idx, (env, preimg, img) in enumerate(envs_preimages_and_images):
         # test newline
         assert img + '\n' == process_line(env, 'test.py', preimg + '\n', idx)[1]
         # test w/o newline

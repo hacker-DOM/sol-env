@@ -26,7 +26,6 @@ Here are some examples:
 If our mental model of our system is correct, the path condition to get to this line contains this requirement nevertheless, we write an assertion, so that our hard-coded concrete and Echidna fuzz tests will alert us if our assumption is wrong.
 
 ```solidity
-// 
 assert(isAllowedlisted[user]); // sol-env:console-log,tests
 ```
 
@@ -63,7 +62,7 @@ library Foo {
 
 ## Setup
 
-To use `sol-env`, put a postfix of `// sol-env:A,B,C` after any Solidity line. When you run `sol-env`, you specify an environment, e.g. A, B, C or something else. If the environment is A, B or C, then `sol-env` will activate this line. This means that if it is commented (in particular, if the first non-whitespace character gives rise to '// '), then it will remove that '// '.[1]
+To use `sol-env`, put a postfix of `// sol-env:A,B,C` after any Solidity line. When you run `sol-env`, you specify an environment, e.g. A, B, C or something else. If the environment is A, B or C, then `sol-env` will activate this line. This means that if it is commented (in particular, if the first non-whitespace character gives rise to `// `), then it will remove that `// `.[1]
 
 And vice versa: if the environment is other than A, B or C, `sol-env` will make sure this line is deactivated (i.e. if it is activated it will deactivate it and if it is deactivated it will remain deactivated).
 
@@ -71,11 +70,11 @@ You can of course also specify a single environment with `// sol-env:A`. Or an e
 
 [1] Note that this also means that if you have multiple comment segments such as
 
-```
+```solidity
 //   // _checkState() // sol-env:production
 ```
 
-and you run it with `--env production` *twice*, `sol-env` will remove both ocurrences. As such, it is not recommended to have adjacent sections of '// '.
+and you run it with `--env production` *twice*, `sol-env` will remove both ocurrences. As such, it is not recommended to have adjacent sections of `// `.
 
 ## Scope
 

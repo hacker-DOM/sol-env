@@ -7,6 +7,7 @@ preimages_and_images = [
     ('dev', 'foo', 'foo'),
     # empty lines are also invariant
     ('dev', '    // sol-env:dev', '    // sol-env:dev'),
+    ('dev', '    ', '    '),
     # An activated line remains activated
     (
         'tests',

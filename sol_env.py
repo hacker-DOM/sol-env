@@ -72,7 +72,7 @@ def rm_line_break(line):
         return (True, line[:-1])
     if line[-1] != '\n':
         return (False, line)
-    _dead(0)
+    _dead()
 
 def process_line(env, fn, line, line_no):
     segments = line.split('// sol-env:')

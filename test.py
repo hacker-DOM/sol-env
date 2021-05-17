@@ -42,7 +42,8 @@ def main():
         # test w/o newline
         assert img == process_line(env, 'test.py', preimg, idx)[1]
         # print result
-        print ('test passed:\nenv    = %s\npreimg = %s\nimg    = %s' % (env, preimg, img))
+        print ('Test passed:\nenv    = %s\npreimg = %s\nimg    = %s' % (env, preimg, img))
+    print ('All tests passing!')
 
 if __name__ == '__main__':
     main()

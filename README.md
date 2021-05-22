@@ -6,14 +6,14 @@ The best way to install `sol-env` is cloning it with `git`, and making a symlink
 
 ```bash
 git clone https://github.com/hacker-dom/sol-env
-ln -s $(pwd)/sol-env/sol_env.py [path-to-python3/bin/sol-env]
-chmod 755 [path-to-python3/bin/sol-env]
+ln -s $(pwd)/sol-env/sol_env.py [path-to-python3-dir/bin/sol-env]
+chmod 755 [path-to-python3-dir/bin/sol-env]
 ```
 
 ## Motivation
 There has been talk (e.g. [here](https://github.com/ethereum/solidity/issues/10825) and [here](https://github.com/ethereum/solidity/issues/8146)) about allowing better support for debug assertions in Solidity. Until that is implemented into Solidity and/or current tooling (and for versions prior to the implementation), this simple utility aspires to be a temporary solution.
 
-`sol-env` allows you to switch between different environments for your Solidity code. There are many examples when this would be useful. You might want to have multiple environments: one for unit and [Echidna](https://github.com/crytic/echidna) tests, one for running `console.log`s with [hardhat](https://github.com/nomiclabs/hardhat), and one for production.
+`sol-env` allows you to switch between different environments for your Solidity code. There are many examples when this would be useful. You might want to have multiple environments: one for unit and [Echidna][echidna] tests, one for running `console.log`s with [hardhat](https://github.com/nomiclabs/hardhat), and one for production.
 
 It is easily imaginable that there will be small differences in the code between these environments. Solidity currently doesn't allow you to do that; `sol-env` does!
 
@@ -60,6 +60,36 @@ library Foo {
 // console.log("Module:swap returning %s", outputValue) // sol-env:console-log
 ```
 
+### Use case 5
+Prior to Solidity 0.6.5, Solidity did not have support for the `immutable` keyword. This meant that in order to specify parameters that should be baked into the bytecode as opposed to stored as storage values, you would have to use the `constant` keyword. You can automate that as such
+
+```solidity
+address constant CHAINLINK_GANACHE_ADDR = 0xaaa // sol-env:ganache
+address constant CHAINLINK_KOVAN_ADDR = 0xaab // sol-env:kovan
+address constant CHAINLINK_MAINNET_ADDR = 0xaac // sol-env:mainnet
+```
+
+### Use case 6
+With the `--comment` option, `sol-env` can operate on non-Solidity files, as long as they are specified as a positional argument, rather than a directory. Let's say you are using [Echidna][echidna] during development. Then you might have an `echidna.config.yml`:
+
+```yml
+testLimit: 5000 # sol-env:dev
+# testLimit: 200000 # sol-env:canonical
+```
+
+During development, you're able to run [Echidna][echidna] on a smaller test limit. Once you've written your properties, you can use
+
+```bash
+sol-env echidna.config.yml --env canonical --comment '#'
+```
+
+and the file will transform to:
+
+```yml
+# testLimit: 5000 # sol-env:dev
+testLimit: 200000 # sol-env:canonical
+```
+
 ## Setup
 
 To use `sol-env`, put a postfix of `// sol-env:A,B,C` after any Solidity line. When you run `sol-env`, you specify an environment, e.g. A, B, C or something else. If the environment is A, B or C, then `sol-env` will activate this line. This means that if it is commented (in particular, if the first non-whitespace character gives rise to `// `), then it will remove that `// `.[1]
@@ -87,3 +117,5 @@ Run using `sol-env [path] --env [env]`. If `path` is a file, `sol-env` will run 
 ## License
 
 Unlicense. Use at your own risk.
+
+[echidna]: https://github.com/crytic/echidna

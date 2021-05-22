@@ -46,6 +46,12 @@ def parse_args():
         help='Specify which environment to use.',
         required=True,
     )
+    parser.add_argument(
+        '--comment',
+        action='store',
+        help='Specify comment separator to use. E.g. "//" (default), or "#" (for vyper and yml files)',
+        default='//',
+    )
 
     parser.add_argument(
         '--silent',
@@ -74,8 +80,11 @@ def rm_line_break(line):
         return (False, line)
     _dead()
 
-def process_line(env, fn, line, line_no):
-    segments = line.split('// sol-env:')
+def process_line(com, env, fn, line, line_no):
+    # Comment separate with whitespace
+    com_with_ws = com + ' '
+    com_with_ws_length = len(com_with_ws)
+    segments = line.split(com_with_ws + 'sol-env:')
     if len(segments) == 1:
         # No "// sol-env:"
         return (False, line)
@@ -98,34 +107,32 @@ def process_line(env, fn, line, line_no):
         elif len(list_of_spans) > 0:
             # index of first non-whitespace character
             ifnwc = list_of_spans[0][0]
-            if segments[0][ifnwc:ifnwc + 3] == '// ':
+            if segments[0][ifnwc:ifnwc + com_with_ws_length] == com_with_ws:
                 # First non-whitespace character gives rise to "// "
                 comment_idx = ifnwc
                 if env in envs:
                     # Activate line
-                    new_line = line[:comment_idx] + line[comment_idx + 3:]
-                    log('%s:L%s activated' % (fn, line_no))
-                    log('New:\n%s' % rm_line_break(new_line)[1])
+                    new_line = line[:comment_idx] + line[comment_idx + com_with_ws_length:]
+                    log('%s:L%s activated. New line:\n  %s' % (fn, line_no, rm_line_break(new_line)[1]))
                     return (True, new_line)
                 elif env not in envs:
                     # Line is already deactivated, do nothing
                     return (False, line)
                 _dead()
-            if segments[0][ifnwc:ifnwc + 3] != '// ':
+            if segments[0][ifnwc:ifnwc + com_with_ws_length] != com_with_ws:
                 if env in envs:
                     # Line is already activated, do nothing
                     return (False, line)
                 if env not in envs:
                     # Deactivate line
-                    new_line = line[:ifnwc] + '// ' + line[ifnwc:]
-                    log('%s:L%s deactivated' % (fn, line_no))
-                    log('New:\n%s' % rm_line_break(new_line)[1])
+                    new_line = line[:ifnwc] + com_with_ws + line[ifnwc:]
+                    log('%s:L%s deactivated. New line:\n  %s' % (fn, line_no, rm_line_break(new_line)[1]))
                     return (True, new_line)
                 _dead()
             _dead()
         _dead()        
 
-def process_fn(env, fn):
+def process_fn(com, env, fn):
     file_changed = False
     logVerbose('Opening file %s' % fn)
     f = open(fn, 'r')
@@ -133,19 +140,20 @@ def process_fn(env, fn):
     for line_idx, line in enumerate(lines):
         line_no = line_idx + 1
         try:
-            line_changed, new_line = process_line(env, fn, line, line_no)
+            line_changed, new_line = process_line(com, env, fn, line, line_no)
         except Exception as e:
             print ('Error ocurred in %s:L%s:\n%s' % (fn, repr(line_no), repr(e)))
             raise
         if line_changed:
             lines[line_idx] = new_line
             file_changed = True
+    f.close()
     return file_changed, lines
 
-def process_fns(env, fns):
+def process_fns(com, env, fns):
     changes = {}
     for fn in fns:
-        file_changed, new_lines = process_fn(env, fn)
+        file_changed, new_lines = process_fn(com, env, fn)
         if file_changed:
             # We'll run all changes at the end to reduce risk of violating atomicity
             changes[fn] = new_lines
@@ -164,7 +172,7 @@ def main():
         setVerbosity(args.silent, args.verbose)
         # filenames
         fns = get_fns(args.path)
-        changes = process_fns(args.env, fns)
+        changes = process_fns(args.comment, args.env, fns)
         process_changes(changes)
     except Exception as e:
         print ('An error ocurred:\n%s' % repr(e))

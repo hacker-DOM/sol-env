@@ -93,7 +93,7 @@ def process_line(com, env, fn, line, line_no):
         
         # "// sol-env:" segment
         # Remove newline character for parsing sol-envs
-        sol_env_segment = rm_line_break(segments[1])[1]
+        sol_env_segment = rm_line_break(segments[1])[1].strip()
         # sol-envs
         envs = sol_env_segment.split(',')
 
